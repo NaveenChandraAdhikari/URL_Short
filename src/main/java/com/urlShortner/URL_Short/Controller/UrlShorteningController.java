@@ -3,20 +3,17 @@ package com.urlShortner.URL_Short.Controller;
 
 import com.urlShortner.URL_Short.Modal.Url;
 import com.urlShortner.URL_Short.Modal.UrlDto;
-import com.urlShortner.URL_Short.Modal.UrlErrorResponseDto;
-import com.urlShortner.URL_Short.Modal.UrlResponseDto;
 import com.urlShortner.URL_Short.Service.UrlService;
-import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.time.LocalDateTime;
 
-@RestController
+@Controller
 public class UrlShorteningController {
 
 
@@ -24,7 +21,78 @@ public class UrlShorteningController {
     private UrlService urlService;
 
 
+    @GetMapping("/")
+    public String home() {
+        return "generate";
+    }
+
     @PostMapping("/generate")
+    public String generateShortLink(
+            @RequestParam("url") String url,
+            @RequestParam(value = "expirationDate", required = false) String expirationDate,
+            RedirectAttributes redirectAttributes)
+    {
+
+        if (url.isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "URL CANNOT BE EMPTY!!");
+            return "redirect:/result";
+        }
+
+        UrlDto urlDto = new UrlDto();
+        urlDto.setUrl(url);
+        urlDto.setExpirationDate(expirationDate);
+
+        Url urlToRet = urlService.generateShortLink(urlDto);
+
+        if (urlToRet != null) {
+            // To dynamically generate short link without hardcoding 'localhost:8080'
+            // or whatever the port number is set to
+            String shortLink = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/{shortLink}")
+                    .buildAndExpand(urlToRet.getShortLink())
+                    .toUriString();
+//            redirectAttributes.addFlashAttribute("shortLink", "http://localhost:8080/" + urlToRet.getShortLink());
+            redirectAttributes.addFlashAttribute("shortLink", shortLink);
+            return "redirect:/result";
+        } else {
+            redirectAttributes.addFlashAttribute("error", "ERROR PROCESSING YOUR REQUEST!! PLEASE TRY AGAIN");
+            return "redirect:/result";
+        }
+    }
+
+    @GetMapping("/result")
+    public String result(Model model) {
+        return "generate";
+    }
+
+    @GetMapping("/{shortLink}")
+    public String redirectToOriginalUrl(
+            @PathVariable String shortLink,
+            Model model)
+    {
+
+        if (shortLink == null || shortLink.isEmpty()) {
+            model.addAttribute("error", "Invalid URL");
+            return "error";
+        }
+
+        Url urlToRet = urlService.getEncodedUrl(shortLink);
+        if (urlToRet == null) {
+            model.addAttribute("error", "URL does not exist or might have expired");
+            return "error";
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (urlToRet.getExpirationDate().isBefore(now)) {
+            urlService.deleteShortLink(urlToRet);
+            model.addAttribute("error", "URL expired. Please try generating a fresh one");
+            return "error";
+        }
+
+        return "redirect:" + urlToRet.getOriginalUrl();
+    }
+
+    /* @PostMapping("/generate")
     public ResponseEntity<?> generateShortLink(@RequestBody UrlDto urlDto){
 
 
@@ -48,12 +116,9 @@ public class UrlShorteningController {
         urlErrorResponseDto.setError("ERROR PROCESSING YOUR REQUEST!!PLEASE TRY AGAIN");
 
         return new ResponseEntity<UrlErrorResponseDto>(urlErrorResponseDto,HttpStatus.NOT_FOUND);
-    }
+    } */
 
-
-
-
-    @GetMapping("/{shortLink}")
+    /* @GetMapping("/{shortLink}")
     public ResponseEntity<?> redirectToOriginalUrl(@PathVariable String shortLink){
 
         // with the help of shortlINK WE REDIRECT THE USER TO ORG UTL
@@ -109,7 +174,7 @@ public class UrlShorteningController {
 //        return null;
 
 
-    }
+    } */
 
 
 }
