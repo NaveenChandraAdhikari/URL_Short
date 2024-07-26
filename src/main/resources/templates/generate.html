@@ -76,6 +76,13 @@
                     <label for="expirationDate">Expiration Date (optional):</label>
                     <input type="datetime-local" id="expirationDate" name="expirationDate" class="form-control">
                 </div>
+                
+<!--                custom link -->
+                <div class="form-group">
+                    <label for="customShortLink">Custom Short Link (optional):</label>
+                    <input type="text" id="customShortLink" name="customShortLink" class="form-control" placeholder="Enter custom short link">
+                </div>
+                
                 <button type="submit" class="btn btn-primary">Generate</button>
             </form>
             <div class="short-url" th:if="${shortLink}">
