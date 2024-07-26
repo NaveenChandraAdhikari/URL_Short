@@ -31,7 +31,7 @@ public class UrlDto {
 
     private String url;
     private String expirationDate; //optional
-
+    private String customShortLink;
 
 
 }

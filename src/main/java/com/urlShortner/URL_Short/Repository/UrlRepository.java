@@ -11,6 +11,6 @@ public interface UrlRepository extends JpaRepository<Url,Long> {
     // we query our short link ince it is generated..shortLink is the part of the get api
 
     public Url findByShortLink(String shortLink);
-
+    boolean existsByShortLink(String shortLink);
 
 }
