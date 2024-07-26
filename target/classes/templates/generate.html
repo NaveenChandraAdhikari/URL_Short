@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>URL Shortener</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 40px;
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            max-width: 600px;
+        }
+        .card {
+            margin-top: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+        }
+        .btn-primary {
+            width: 100%;
+            background-color: #007bff;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            padding: 10px;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .short-url {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .short-url a {
+            color: #007bff;
+            font-weight: bold;
+            font-size: 18px;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .short-url a:hover {
+            color: #0056b3;
+        }
+        .form-control {
+            border-radius: 10px;
+        }
+        .form-group label {
+            font-weight: bold;
+        }
+        .alert {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Generate Short URL</h3>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/generate}" method="post">
+                <div class="form-group">
+                    <label for="url">URL:</label>
+                    <input type="text" id="url" name="url" class="form-control" placeholder="Enter URL" required>
+                </div>
+                <div class="form-group">
+                    <label for="expirationDate">Expiration Date (optional):</label>
+                    <input type="datetime-local" id="expirationDate" name="expirationDate" class="form-control">
+                </div>
+                
+<!--                custom link -->
+                <div class="form-group">
+                    <label for="customShortLink">Custom Short Link (optional):</label>
+                    <input type="text" id="customShortLink" name="customShortLink" class="form-control" placeholder="Enter custom short link">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Generate</button>
+            </form>
+            <div class="short-url" th:if="${shortLink}">
+                <h5>Short URL</h5>
+                <p><a th:href="${shortLink}" th:text="${shortLink}" target="_blank"></a></p>
+            </div>
+            <div class="alert alert-danger" role="alert" th:if="${error}">
+                <h5>Error</h5>
+                <p th:text="${error}"></p>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
