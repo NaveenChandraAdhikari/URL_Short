@@ -30,7 +30,9 @@ public class UrlShorteningController {
     public String generateShortLink(
             @RequestParam("url") String url,
             @RequestParam(value = "expirationDate", required = false) String expirationDate,
+            @RequestParam(value = "customShortLink", required = false) String customShortLink,
             RedirectAttributes redirectAttributes)
+
     {
 
         if (url.isBlank()) {
@@ -42,20 +44,29 @@ public class UrlShorteningController {
         urlDto.setUrl(url);
         urlDto.setExpirationDate(expirationDate);
 
-        Url urlToRet = urlService.generateShortLink(urlDto);
 
-        if (urlToRet != null) {
-            // To dynamically generate short link without hardcoding 'localhost:8080'
-            // or whatever the port number is set to
-            String shortLink = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/{shortLink}")
-                    .buildAndExpand(urlToRet.getShortLink())
-                    .toUriString();
-//            redirectAttributes.addFlashAttribute("shortLink", "http://localhost:8080/" + urlToRet.getShortLink());
-            redirectAttributes.addFlashAttribute("shortLink", shortLink);
-            return "redirect:/result";
-        } else {
-            redirectAttributes.addFlashAttribute("error", "ERROR PROCESSING YOUR REQUEST!! PLEASE TRY AGAIN");
+        urlDto.setCustomShortLink(customShortLink);
+
+
+        try {
+            Url urlToRet = urlService.generateShortLink(urlDto);
+
+            if (urlToRet != null) {
+                // To dynamically generate short link without hardcoding 'localhost:8080'
+//            // or whatever the port number is set to
+                String shortLink = ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/{shortLink}")
+                        .buildAndExpand(urlToRet.getShortLink())
+                        .toUriString();
+                redirectAttributes.addFlashAttribute("shortLink", shortLink);
+                return "redirect:/result";
+            } else {
+                redirectAttributes.addFlashAttribute("error", "ERROR PROCESSING YOUR REQUEST!! PLEASE TRY AGAIN");
+                return "redirect:/result";
+            }
+        } catch (RuntimeException e) {
+            // Handle custom short link conflicts
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/result";
         }
     }
